@@ -43,7 +43,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "public-${count.index}"
+    Name = "public-${count.index + 1}"
   }
 }
 
@@ -82,7 +82,7 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "public-${count.index}"
+    Name = "private-${count.index + 1}"
   }
 }
 
