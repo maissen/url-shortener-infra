@@ -116,7 +116,7 @@ resource "aws_route_table" "private" {
 resource "aws_route" "private_internet" {
   route_table_id         = aws_route_table.private.id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id = aws_nat_gateway.nat_gw.id
+  nat_gateway_id         = aws_nat_gateway.nat_gw.id
 }
 
 
@@ -126,4 +126,20 @@ resource "aws_route_table_association" "private_assoc" {
 
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
+}
+
+# ECS cluster
+resource "aws_ecs_cluster" "cluster" {
+  name = "my-fargate-cluster"
+
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+}
+
+resource "aws_ecs_cluster_capacity_providers" "example" {
+  cluster_name = aws_ecs_cluster.cluster.name
+
+  capacity_providers = ["FARGATE"]
 }
