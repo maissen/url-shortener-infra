@@ -11,6 +11,11 @@ resource "aws_ecs_cluster" "main" {
 resource "aws_ecs_cluster_capacity_providers" "this" {
   cluster_name       = aws_ecs_cluster.main.name
   capacity_providers = ["FARGATE"]
+
+  default_capacity_provider_strategy {
+    capacity_provider = "FARGATE"
+    weight            = 1
+  }
 }
 
 # CloudWatch Logs
@@ -183,4 +188,8 @@ resource "aws_ecs_service" "app" {
   lifecycle {
     ignore_changes = [task_definition]
   }
+
+  depends_on = [
+    aws_lb_listener.http
+  ]
 }
