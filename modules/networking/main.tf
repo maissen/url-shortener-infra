@@ -36,8 +36,6 @@ resource "aws_nat_gateway" "nat_gw" {
   }
 }
 
-data "aws_availability_zones" "azs" {}
-
 # Public Subnets
 resource "aws_subnet" "public" {
   count = length(var.public_subnet_cidrs)
