@@ -21,7 +21,17 @@ variable "image" {
 variable "container_port" {
   description = "Container port"
   type        = number
-  default     = 3000
+}
+
+variable "container_name" {
+  description = "Container name"
+  type        = string
+}
+
+variable "desired_count" {
+  description = "Desired count for ECS tasks"
+  type = number
+  default = 1
 }
 
 variable "environment" {

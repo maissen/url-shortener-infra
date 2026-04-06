@@ -1,6 +1,6 @@
-# ECS cluster
+# ECS Cluster
 resource "aws_ecs_cluster" "main" {
-  name = "my-fargate-cluster"
+  name = "${var.environment}-cluster"
 
   setting {
     name  = "containerInsights"
@@ -8,92 +8,99 @@ resource "aws_ecs_cluster" "main" {
   }
 }
 
-resource "aws_ecs_cluster_capacity_providers" "example" {
-  cluster_name = aws_ecs_cluster.main.name
+resource "aws_ecs_cluster_capacity_providers" "this" {
+  cluster_name       = aws_ecs_cluster.main.name
   capacity_providers = ["FARGATE"]
 }
 
-resource "aws_ecs_task_definition" "nginx" {
-  family                   = "nginx-task"
-  requires_compatibilities = ["FARGATE"]
-  network_mode             = "awsvpc"
-  cpu                      = "256"
-  memory                   = "512"
-  execution_role_arn       = aws_iam_role.task_execution.arn
-  task_role_arn            = aws_iam_role.task_role.arn
+# CloudWatch Logs
+resource "aws_cloudwatch_log_group" "ecs" {
+  name              = "/ecs/${var.environment}"
+  retention_in_days = 7
+}
 
-  container_definitions = jsonencode([
-    {
-      name  = "nginx"
-      image = "nginx:latest"
+# IAM - Execution role
+resource "aws_iam_role" "task_execution" {
+  name = "${var.environment}-ecs-task-execution-role"
 
-      essential = true
-
-      portMappings = [
-        {
-          containerPort = 3000
-          hostPort      = 3000
-        }
-      ]
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = aws_cloudwatch_log_group.ecs.name
-          awslogs-region        = "us-east-2"
-          awslogs-stream-prefix = "ecs"
-        }
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
       }
-    }
-  ])
+    }]
+  })
+}
 
-  lifecycle {
-    ignore_changes = [
-      container_definitions
-    ]
+resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
+  role       = aws_iam_role.task_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# IAM - Task role
+resource "aws_iam_role" "task_role" {
+  name = "${var.environment}-ecs-task-role"
+  assume_role_policy = aws_iam_role.task_execution.assume_role_policy
+}
+
+# Security Groups
+
+resource "aws_security_group" "alb_sg" {
+  name   = "${var.environment}-alb-sg"
+  vpc_id = var.vpc_id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
-resource "aws_ecs_service" "nginx" {
-  name            = "nginx-service"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.nginx.arn
-  desired_count   = 1
-  launch_type     = "FARGATE"
+resource "aws_security_group" "ecs_sg" {
+  name   = "${var.environment}-ecs-sg"
+  vpc_id = var.vpc_id
 
-  network_configuration {
-    subnets         = aws_subnet.private[*].id
-    security_groups = [ aws_security_group.ecs_sg.id ]
+  ingress {
+    from_port       = var.container_port
+    to_port         = var.container_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
   }
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.ecs_tg.arn
-    container_name   = "nginx"
-    container_port   = 3000
-  }
-
-  lifecycle {
-    ignore_changes = [task_definition]
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
 # ALB
 resource "aws_lb" "alb" {
-  name               = "app-alb"
+  name               = "${var.environment}-alb"
   load_balancer_type = "application"
-  subnets            = aws_subnet.public[*].id
-  security_groups    = [aws_security_group.alb_sg.id]
 
-  tags = {
-    Name = "app-alb"
-  }
+  subnets         = var.public_subnet_ids
+  security_groups  = [aws_security_group.alb_sg.id]
 }
 
+# ALB Target Group
 resource "aws_lb_target_group" "ecs_tg" {
-  name        = "ecs-tg"
-  port        = 3000
+  name        = "${var.environment}-tg"
+  port        = var.container_port
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = var.vpc_id
   target_type = "ip"
 
   health_check {
@@ -107,6 +114,7 @@ resource "aws_lb_target_group" "ecs_tg" {
   }
 }
 
+# ALB Listener
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.alb.arn
   port              = 80
@@ -118,97 +126,61 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-# CloudWatch
-resource "aws_cloudwatch_log_group" "ecs" {
-  name = "/ecs"
-  # retention_in_days = 7
-}
+# ECS Task Definition
+resource "aws_ecs_task_definition" "app" {
+  family                   = "${var.environment}-task"
+  requires_compatibilities  = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.task_execution.arn
+  task_role_arn            = aws_iam_role.task_role.arn
 
-# IAM
-resource "aws_iam_role" "task_execution" {
-  name = "ecs_task_execution_role"
+  container_definitions = jsonencode([
+    {
+      name  = var.container_name
+      image = var.image
+      essential = true
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid    = ""
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
+      portMappings = [
+        {
+          containerPort = var.container_port
+          hostPort      = var.container_port
         }
-      },
-    ]
-  })
+      ]
 
-  tags = {
-    tag-key = "tag-value"
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
-  role       = aws_iam_role.task_execution.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-resource "aws_iam_role" "task_role" {
-  name = "ecs_task_role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid    = ""
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.ecs.name
+          awslogs-region        = data.aws_region.current.name
+          awslogs-stream-prefix = "ecs"
         }
-      },
-    ]
-  })
-
-  tags = {
-    tag-key = "tag-value"
-  }
+      }
+    }
+  ])
 }
 
-# Security Groups
-resource "aws_security_group" "ecs_sg" {
-  name   = "ecs-sg"
-  vpc_id = aws_vpc.main.id
+# ECS Service
+resource "aws_ecs_service" "app" {
+  name            = "${var.environment}-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.app.arn
+  desired_count   = var.desired_count
+  launch_type     = "FARGATE"
 
-  ingress {
-    from_port       = 3000
-    to_port         = 3000
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+  network_configuration {
+    subnets         = var.private_subnet_ids
+    security_groups  = [aws_security_group.ecs_sg.id]
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_security_group" "alb_sg" {
-  name   = "ecs-sg"
-  vpc_id = aws_vpc.main.id
-
-  ingress {
-    from_port       = 80
-    to_port         = 80
-    protocol        = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  load_balancer {
+    target_group_arn = aws_lb_target_group.ecs_tg.arn
+    container_name   = var.container_name
+    container_port   = var.container_port
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+  lifecycle {
+    ignore_changes = [task_definition]
   }
 }
