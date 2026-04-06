@@ -189,6 +189,8 @@ resource "aws_ecs_service" "app" {
     ignore_changes = [task_definition]
   }
 
+  health_check_grace_period_seconds = 60
+
   depends_on = [
     aws_lb_listener.http
   ]
