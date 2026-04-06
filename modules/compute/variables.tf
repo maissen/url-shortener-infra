@@ -38,3 +38,8 @@ variable "desired_count" {
   type = number
   default = 1
 }
+
+variable "log_region" {
+  description = "CloudWatch log region for ECS tasks"
+  type = string
+}
