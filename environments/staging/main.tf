@@ -18,7 +18,7 @@ module "ecr" {
 module "compute" {
   source = "../../modules/compute"
 
-  environment = var.environment
+  name_prefix = var.environment
 
   vpc_id              = module.networking.vpc_id
   public_subnet_ids   = module.networking.public_subnet_ids

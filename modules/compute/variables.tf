@@ -1,3 +1,8 @@
+variable "name_prefix" {
+  description = "Prefix for all resource names (staging, prod)"
+  type        = string
+}
+
 variable "vpc_id" {
   description = "VPC ID"
   type        = string
@@ -32,9 +37,4 @@ variable "desired_count" {
   description = "Desired count for ECS tasks"
   type = number
   default = 1
-}
-
-variable "environment" {
-  description = "Environment name (staging/prod)"
-  type        = string
 }

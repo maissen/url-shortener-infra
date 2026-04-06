@@ -1,6 +1,6 @@
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
-  name = "${var.environment}-cluster"
+  name = "${var.name_prefix}-cluster"
 
   setting {
     name  = "containerInsights"
@@ -15,13 +15,13 @@ resource "aws_ecs_cluster_capacity_providers" "this" {
 
 # CloudWatch Logs
 resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/ecs/${var.environment}"
+  name              = "/ecs/${var.name_prefix}"
   retention_in_days = 7
 }
 
 # IAM - Execution role
 resource "aws_iam_role" "task_execution" {
-  name = "${var.environment}-ecs-task-execution-role"
+  name = "${var.name_prefix}-ecs-task-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -42,14 +42,14 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
 
 # IAM - Task role
 resource "aws_iam_role" "task_role" {
-  name = "${var.environment}-ecs-task-role"
+  name = "${var.name_prefix}-ecs-task-role"
   assume_role_policy = aws_iam_role.task_execution.assume_role_policy
 }
 
 # Security Groups
 
 resource "aws_security_group" "alb_sg" {
-  name   = "${var.environment}-alb-sg"
+  name   = "${var.name_prefix}-alb-sg"
   vpc_id = var.vpc_id
 
   ingress {
@@ -68,7 +68,7 @@ resource "aws_security_group" "alb_sg" {
 }
 
 resource "aws_security_group" "ecs_sg" {
-  name   = "${var.environment}-ecs-sg"
+  name   = "${var.name_prefix}-ecs-sg"
   vpc_id = var.vpc_id
 
   ingress {
@@ -88,7 +88,7 @@ resource "aws_security_group" "ecs_sg" {
 
 # ALB
 resource "aws_lb" "alb" {
-  name               = "${var.environment}-alb"
+  name               = "${var.name_prefix}-alb"
   load_balancer_type = "application"
 
   subnets         = var.public_subnet_ids
@@ -97,7 +97,7 @@ resource "aws_lb" "alb" {
 
 # ALB Target Group
 resource "aws_lb_target_group" "ecs_tg" {
-  name        = "${var.environment}-tg"
+  name        = "${var.name_prefix}-tg"
   port        = var.container_port
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -128,7 +128,7 @@ resource "aws_lb_listener" "http" {
 
 # ECS Task Definition
 resource "aws_ecs_task_definition" "app" {
-  family                   = "${var.environment}-task"
+  family                   = "${var.name_prefix}-task"
   requires_compatibilities  = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = "256"
@@ -163,7 +163,7 @@ resource "aws_ecs_task_definition" "app" {
 
 # ECS Service
 resource "aws_ecs_service" "app" {
-  name            = "${var.environment}-service"
+  name            = "${var.name_prefix}-service"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = var.desired_count
