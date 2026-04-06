@@ -222,6 +222,15 @@ resource "aws_ecs_task_definition" "nginx" {
           hostPort      = 80
         }
       ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.ecs.name
+          awslogs-region        = "us-east-2"
+          awslogs-stream-prefix = "ecs"
+        }
+      }
     }
   ])
 }
@@ -264,4 +273,9 @@ resource "aws_ecs_service" "nginx" {
   }
 
   depends_on = [aws_lb_listener.http]
+}
+
+resource "aws_cloudwatch_log_group" "ecs" {
+  name              = "/ecs"
+  # retention_in_days = 7
 }
