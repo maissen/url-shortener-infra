@@ -76,9 +76,9 @@ resource "aws_route_table_association" "public_assoc" {
 resource "aws_subnet" "private" {
   count = 2
 
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.${count.index + 3}.0/24"
-  availability_zone       = data.aws_availability_zones.azs.names[count.index]
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.${count.index + 3}.0/24"
+  availability_zone = data.aws_availability_zones.azs.names[count.index]
 
   tags = {
     Name = "private-${count.index + 1}"
@@ -136,7 +136,7 @@ resource "aws_ecs_cluster" "cluster" {
     value = "enabled"
   }
 
-  depends_on = [ aws_vpc.main ]
+  depends_on = [aws_vpc.main]
 }
 
 resource "aws_ecs_cluster_capacity_providers" "example" {
@@ -169,7 +169,7 @@ resource "aws_security_group" "alb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  depends_on = [ aws_vpc.main ]
+  depends_on = [aws_vpc.main]
 }
 
 resource "aws_lb" "alb" {
@@ -219,6 +219,7 @@ resource "aws_ecs_task_definition" "nginx" {
   cpu                      = "256"
   memory                   = "512"
   execution_role_arn       = aws_iam_role.task_execution.arn
+  task_role_arn            = aws_iam_role.task_role.arn
 
   container_definitions = jsonencode([
     {
@@ -282,7 +283,7 @@ resource "aws_ecs_service" "nginx" {
 
   network_configuration {
     subnets         = aws_subnet.private[*].id
-    security_groups  = [aws_security_group.ecs_sg.id]
+    security_groups = [aws_security_group.ecs_sg.id]
   }
 
   load_balancer {
@@ -299,7 +300,7 @@ resource "aws_ecs_service" "nginx" {
 }
 
 resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/ecs"
+  name = "/ecs"
   # retention_in_days = 7
 }
 
@@ -328,4 +329,26 @@ resource "aws_iam_role" "task_execution" {
 resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
   role       = aws_iam_role.task_execution.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role" "task_role" {
+  name = "ecs_task_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      },
+    ]
+  })
+
+  tags = {
+    tag-key = "tag-value"
+  }
 }
