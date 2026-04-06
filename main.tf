@@ -31,11 +31,6 @@ resource "aws_ecs_cluster_capacity_providers" "example" {
   capacity_providers = ["FARGATE"]
 }
 
-resource "aws_ecr_repository" "ecr" {
-  name                 = "my-repo"
-  image_tag_mutability = "IMMUTABLE"
-}
-
 
 resource "aws_lb" "alb" {
   name               = "app-alb"
