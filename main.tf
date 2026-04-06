@@ -185,7 +185,7 @@ resource "aws_lb" "alb" {
 
 resource "aws_lb_target_group" "ecs_tg" {
   name        = "ecs-tg"
-  port        = 80
+  port        = 3000
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
@@ -193,6 +193,7 @@ resource "aws_lb_target_group" "ecs_tg" {
   health_check {
     path                = "/health"
     protocol            = "HTTP"
+    port                = "traffic-port"
     interval            = 15
     timeout             = 5
     healthy_threshold   = 2
@@ -228,8 +229,8 @@ resource "aws_ecs_task_definition" "nginx" {
 
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
+          containerPort = 3000
+          hostPort      = 3000
         }
       ]
 
@@ -258,8 +259,8 @@ resource "aws_security_group" "ecs_sg" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    from_port       = 80
-    to_port         = 80
+    from_port       = 3000
+    to_port         = 3000
     protocol        = "tcp"
     security_groups = [aws_security_group.alb_sg.id]
   }
@@ -287,7 +288,11 @@ resource "aws_ecs_service" "nginx" {
   load_balancer {
     target_group_arn = aws_lb_target_group.ecs_tg.arn
     container_name   = "nginx"
-    container_port   = 80
+    container_port   = 3000
+  }
+
+  lifecycle {
+    ignore_changes = [task_definition]
   }
 
   depends_on = [aws_lb_listener.http]
