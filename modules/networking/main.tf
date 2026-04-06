@@ -1,11 +1,11 @@
 # VPC
 resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
+  cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
 
   tags = {
-    Name = "main-vpc"
+    Name = "${var.name_prefix}-vpc"
   }
 }
 
@@ -14,7 +14,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "main-igw"
+    Name = "${var.name_prefix}-igw"
   }
 }
 
@@ -32,7 +32,7 @@ resource "aws_nat_gateway" "nat_gw" {
   subnet_id     = aws_subnet.public[0].id
 
   tags = {
-    Name = "nat-gateway"
+    Name = "${var.name_prefix}-nat"
   }
 }
 
@@ -40,28 +40,28 @@ data "aws_availability_zones" "azs" {}
 
 # Public Subnets
 resource "aws_subnet" "public" {
-  count = 2
+  count = length(var.public_subnet_cidrs)
 
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.${count.index + 1}.0/24"
-  availability_zone       = data.aws_availability_zones.azs.names[count.index]
+  cidr_block              = var.public_subnet_cidrs[count.index]
+  availability_zone       = var.azs[count.index]
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "public-${count.index + 1}"
+    Name = "${var.name_prefix}-public-${count.index + 1}"
   }
 }
 
 # Private Subnets
 resource "aws_subnet" "private" {
-  count = 2
+  count = length(var.private_subnet_cidrs)
 
   vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.${count.index + 3}.0/24"
-  availability_zone = data.aws_availability_zones.azs.names[count.index]
+  cidr_block        = var.private_subnet_cidrs[count.index]
+  availability_zone = var.azs[count.index]
 
   tags = {
-    Name = "private-${count.index + 1}"
+    Name = "${var.name_prefix}-private-${count.index + 1}"
   }
 }
 
@@ -70,7 +70,7 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "public-rt"
+    Name = "${var.name_prefix}-public-rt"
   }
 }
 
@@ -84,7 +84,7 @@ resource "aws_route" "public_internet" {
 
 # Associate public subnets with public rt
 resource "aws_route_table_association" "public_assoc" {
-  count = 2
+  count = length(var.public_subnet_cidrs)
 
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
@@ -96,7 +96,7 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "private-rt"
+    Name = "${var.name_prefix}-private-rt"
   }
 }
 
@@ -110,7 +110,7 @@ resource "aws_route" "private_internet" {
 
 # Associate private subnets with private rt
 resource "aws_route_table_association" "private_assoc" {
-  count = 2
+  count = length(var.private_subnet_cidrs)
 
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
