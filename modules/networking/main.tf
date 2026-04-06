@@ -34,6 +34,8 @@ resource "aws_nat_gateway" "nat_gw" {
   tags = {
     Name = "${var.name_prefix}-nat"
   }
+
+  depends_on = [ aws_vpc.main ]
 }
 
 # Public Subnets
