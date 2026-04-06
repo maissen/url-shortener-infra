@@ -23,7 +23,7 @@ resource "aws_eip" "nat_eip" {
   domain = "vpc"
 
   tags = {
-    Name = "nat-eip"
+    Name = "${var.name_prefix}-nat-eip"
   }
 }
 
