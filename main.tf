@@ -136,6 +136,8 @@ resource "aws_ecs_cluster" "cluster" {
     name  = "containerInsights"
     value = "enabled"
   }
+
+  depends_on = [ aws_vpc.main ]
 }
 
 resource "aws_ecs_cluster_capacity_providers" "example" {
@@ -147,4 +149,56 @@ resource "aws_ecs_cluster_capacity_providers" "example" {
 resource "aws_ecr_repository" "ecr" {
   name                 = "my-repo"
   image_tag_mutability = "IMMUTABLE"
+}
+
+resource "aws_security_group" "alb_sg" {
+  name        = "alb-sg"
+  description = "Allow HTTP traffic"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  depends_on = [ aws_vpc.main ]
+}
+
+resource "aws_lb" "alb" {
+  name               = "app-alb"
+  load_balancer_type = "application"
+  subnets            = aws_subnet.public[*].id
+  security_groups    = [aws_security_group.alb_sg.id]
+
+  tags = {
+    Name = "app-alb"
+  }
+}
+
+resource "aws_lb_target_group" "ecs_tg" {
+  name        = "ecs-tg"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
+  target_type = "ip"
+}
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ecs_tg.arn
+  }
 }
