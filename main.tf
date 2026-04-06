@@ -208,6 +208,7 @@ resource "aws_ecs_task_definition" "nginx" {
   network_mode             = "awsvpc"
   cpu                      = "256"
   memory                   = "512"
+  execution_role_arn       = aws_iam_role.task_execution.arn
 
   container_definitions = jsonencode([
     {
@@ -233,6 +234,8 @@ resource "aws_ecs_task_definition" "nginx" {
       }
     }
   ])
+
+  depends_on = [aws_iam_role.task_execution]
 }
 
 resource "aws_security_group" "ecs_sg" {
@@ -278,4 +281,31 @@ resource "aws_ecs_service" "nginx" {
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs"
   # retention_in_days = 7
+}
+
+resource "aws_iam_role" "task_execution" {
+  name = "ecs_task_execution_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      },
+    ]
+  })
+
+  tags = {
+    tag-key = "tag-value"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
+  role       = aws_iam_role.task_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
