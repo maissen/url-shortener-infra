@@ -8,15 +8,6 @@ module "networking" {
   private_subnet_cidrs = var.private_subnet_cidrs
 }
 
-module "ecr" {
-  source = "../../modules/ecr"
-
-  name_prefix     = var.environment
-  repository_name = var.ecr_repo_name
-  scan_on_push = var.scan_on_push
-  tagged_images_to_keep = var.tagged_images_to_keep
-}
-
 module "compute" {
   source = "../../modules/compute"
 
@@ -30,7 +21,7 @@ module "compute" {
   container_name = var.container_name
   container_port = var.container_port
 
-  image = "${module.ecr.repository_url}:${var.image_tag}"
+  image = "${var.ecr_repo_url}:${var.image_tag}"
   desired_count  = var.desired_count
   enable_deletion_protection = var.enable_alb_deletion_protection
 }
