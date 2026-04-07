@@ -18,6 +18,7 @@ resource "aws_ecr_lifecycle_policy" "this" {
         description  = "Keep last ${var.tagged_images_to_keep} tagged images"
         selection = {
           tagStatus     = "tagged"
+          tagPrefixList = [var.name_prefix]
           countType     = "imageCountMoreThan"
           countNumber   = var.tagged_images_to_keep
         }
