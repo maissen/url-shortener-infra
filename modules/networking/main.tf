@@ -35,7 +35,7 @@ resource "aws_nat_gateway" "nat_gw" {
     Name = "${var.name_prefix}-nat"
   }
 
-  depends_on = [aws_internet_gateway.igw]
+  depends_on = [aws_internet_gateway.igw, aws_eip.nat_eip]
 }
 
 # Public Subnets
