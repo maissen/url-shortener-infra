@@ -35,5 +35,5 @@ output "ecs_service_name" {
 
 output "ecr_repository_url" {
   description = "ECR repository URL for pushing/pulling images"
-  value       = module.ecr.repository_url
+  value       = var.ecr_repo_url
 }
