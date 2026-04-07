@@ -49,6 +49,18 @@ variable "image_tag" {
   type        = string
 }
 
+variable "scan_on_push" {
+  description = "Enable/Disable image scanning on push to ECR"
+  type = bool
+  default = true
+}
+
+variable "tagged_images_to_keep" {
+  description = "Number of tagged images to retain in ECR"
+  type        = number
+  default     = 20
+}
+
 variable "desired_count" {
   description = "Desired number of tasks/containers"
   type        = number
