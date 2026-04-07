@@ -30,4 +30,5 @@ module "compute" {
 
   image = "${module.ecr.repository_url}:${var.image_tag}"
   desired_count  = var.desired_count
+  enable_deletion_protection = var.enable_alb_deletion_protection
 }

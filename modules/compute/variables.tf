@@ -43,3 +43,9 @@ variable "log_region" {
   description = "CloudWatch log region for ECS tasks"
   type = string
 }
+
+variable "enable_deletion_protection" {
+  description = "Enable deletion protection for ALB"
+  type = bool
+  default = true
+}

@@ -54,3 +54,9 @@ variable "desired_count" {
   type        = number
   default     = 1
 }
+
+variable "enable_alb_deletion_protection" {
+  description = "Enable deletion protection for ALB"
+  type = bool
+  default = true
+}

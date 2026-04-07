@@ -98,6 +98,7 @@ resource "aws_lb" "alb" {
 
   subnets         = var.public_subnet_ids
   security_groups  = [aws_security_group.alb_sg.id]
+  enable_deletion_protection = var.enable_deletion_protection
 }
 
 # ALB Target Group
@@ -176,6 +177,7 @@ resource "aws_ecs_service" "app" {
   network_configuration {
     subnets         = var.private_subnet_ids
     security_groups  = [aws_security_group.ecs_sg.id]
+    assign_public_ip = false
   }
 
   load_balancer {
