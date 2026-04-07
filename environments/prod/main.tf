@@ -13,6 +13,8 @@ module "ecr" {
 
   name_prefix     = var.environment
   repository_name = var.ecr_repo_name
+  scan_on_push = var.scan_on_push
+  tagged_images_to_keep = var.tagged_images_to_keep
 }
 
 module "compute" {
