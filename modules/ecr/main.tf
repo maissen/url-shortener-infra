@@ -2,4 +2,42 @@
 resource "aws_ecr_repository" "ecr" {
   name                 = "${var.name_prefix}-${var.repository_name}"
   image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = var.scan_on_push
+  }
+}
+
+resource "aws_ecr_lifecycle_policy" "this" {
+  repository = aws_ecr_repository.ecr.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last ${var.tagged_images_to_keep} tagged images"
+        selection = {
+          tagStatus     = "tagged"
+          countType     = "imageCountMoreThan"
+          countNumber   = var.tagged_images_to_keep
+        }
+        action = {
+          type = "expire"
+        }
+      },
+      {
+        rulePriority = 2
+        description  = "Delete untagged images after 1 day"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "days"
+          countNumber = 1
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
 }
