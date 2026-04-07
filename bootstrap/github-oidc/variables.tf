@@ -13,13 +13,23 @@ variable "ecr_repo_name" {
   type        = string
 }
 
-variable "ecs_cluster_name" {
-  description = "ECS cluster name"
+variable "staging_ecs_cluster_name" {
+  description = "Staging ECS cluster name"
   type        = string
 }
 
-variable "ecs_service_name" {
-  description = "ECS service name"
+variable "staging_ecs_service_name" {
+  description = "Staging ECS service name"
+  type        = string
+}
+
+variable "prod_ecs_cluster_name" {
+  description = "Prod ECS cluster name"
+  type        = string
+}
+
+variable "prod_ecs_service_name" {
+  description = "Prod ECS service name"
   type        = string
 }
 
