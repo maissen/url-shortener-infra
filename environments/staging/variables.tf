@@ -29,8 +29,8 @@ variable "private_subnet_cidrs" {
   type        = list(string)
 }
 
-variable "ecr_repo_name" {
-  description = "ECR repository name"
+variable "ecr_repo_url" {
+  description = "ECR repository url"
   type = string
 }
 
@@ -47,18 +47,6 @@ variable "container_port" {
 variable "image_tag" {
   description = "Docker image tag to deploy (from ECR)"
   type        = string
-}
-
-variable "scan_on_push" {
-  description = "Enable/Disable image scanning on push to ECR"
-  type = bool
-  default = true
-}
-
-variable "tagged_images_to_keep" {
-  description = "Number of tagged images to retain in ECR"
-  type        = number
-  default     = 20
 }
 
 variable "desired_count" {
