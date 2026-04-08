@@ -27,6 +27,11 @@ resource "aws_eip" "nat_eip" {
   }
 }
 
+resource "time_sleep" "wait_for_eip" {
+  depends_on      = [aws_eip.nat_eip]
+  create_duration = "10s"
+}
+
 resource "aws_nat_gateway" "nat_gw" {
   allocation_id = aws_eip.nat_eip.id
   subnet_id     = aws_subnet.public[0].id
@@ -35,7 +40,7 @@ resource "aws_nat_gateway" "nat_gw" {
     Name = "${var.name_prefix}-nat"
   }
 
-  depends_on = [aws_internet_gateway.igw, aws_eip.nat_eip]
+  depends_on = [aws_internet_gateway.igw, time_sleep.wait_for_eip]
 }
 
 # Public Subnets
