@@ -29,8 +29,8 @@ variable "private_subnet_cidrs" {
   type        = list(string)
 }
 
-variable "ecr_repo_name" {
-  description = "ECR repository name"
+variable "ecr_repo_url" {
+  description = "ECR repository url"
   type = string
 }
 
