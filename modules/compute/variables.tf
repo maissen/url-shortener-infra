@@ -50,12 +50,6 @@ variable "aws_region" {
   type        = string
 }
 
-variable "enable_deletion_protection" {
-  description = "Enable deletion protection for ALB"
-  type        = bool
-  default     = true
-}
-
 variable "dynamodb_table_arn" {
   description = "ARN of the DynamoDB table the ECS task is allowed to access"
   type        = string
