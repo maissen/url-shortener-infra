@@ -1,5 +1,5 @@
 variable "environment" {
-  description = "Environment name (staging, prod)"
+  description = "Environment name (staging, prod, qa)"
   type        = string
 }
 
@@ -59,4 +59,8 @@ variable "enable_alb_deletion_protection" {
   description = "Enable deletion protection for ALB"
   type = bool
   default = true
+}
+
+variable "app_name" {
+  description = "App name to prefix Parameter store's parameters with"
 }
