@@ -12,8 +12,8 @@ module "compute" {
   source = "../../modules/compute"
 
   name_prefix = var.environment
+  aws_region = var.region
 
-  log_region = var.region
   vpc_id              = module.networking.vpc_id
   public_subnet_ids   = module.networking.public_subnet_ids
   private_subnet_ids  = module.networking.private_subnet_ids
@@ -24,4 +24,14 @@ module "compute" {
   image = "${var.ecr_repo_url}:${var.image_tag}"
   desired_count  = var.desired_count
   enable_deletion_protection = var.enable_alb_deletion_protection
+
+  app_name = var.app_name
+  dynamodb_table_arn = module.storage.dynamodb_table_arn
+}
+
+module "storage" {
+  source = "../../modules/storage"
+
+  name_prefix = var.environment
+  app_name = var.app_name
 }

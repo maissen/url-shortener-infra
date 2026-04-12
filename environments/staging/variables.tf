@@ -60,3 +60,7 @@ variable "enable_alb_deletion_protection" {
   type = bool
   default = true
 }
+
+variable "app_name" {
+  description = "App name to prefix Parameter store's parameters with"
+}
