@@ -179,14 +179,19 @@ resource "aws_ecs_task_definition" "app" {
       environment = [
         { name = "APP_ENV",    value = var.name_prefix },
         { name = "AWS_REGION", value = var.aws_region },
-        { name = "APP_NAME",   value = var.app_name }
+        { name = "APP_NAME",   value = var.app_name },
       ]
 
       secrets = [
         {
           name      = "DYNAMODB_TABLE"
           valueFrom = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current_user.account_id}:parameter/${var.app_name}/${var.name_prefix}/dynamodb_table_name"
+        },
+        { 
+          name = "BASE_URL",   
+          valueFrom= "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current_user.account_id}:parameter/${var.app_name}/${var.name_prefix}/base_url"
         }
+
       ]
 
       logConfiguration = {
