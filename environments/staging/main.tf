@@ -34,4 +34,5 @@ module "storage" {
 
   name_prefix = var.environment
   app_name = var.app_name
+  base_url = "http://${module.compute.alb_dns_name}"
 }
