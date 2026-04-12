@@ -184,7 +184,7 @@ resource "aws_ecs_task_definition" "app" {
 
       secrets = [
         {
-          name      = "DYNAMODB_TABLE_NAME"
+          name      = "DYNAMODB_TABLE"
           valueFrom = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current_user.account_id}:parameter/${var.app_name}/${var.name_prefix}/dynamodb_table_name"
         }
       ]
