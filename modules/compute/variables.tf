@@ -39,11 +39,6 @@ variable "desired_count" {
   default = 1
 }
 
-variable "log_region" {
-  description = "CloudWatch log region for ECS tasks"
-  type = string
-}
-
 variable "enable_deletion_protection" {
   description = "Enable deletion protection for ALB"
   type = bool
@@ -52,11 +47,6 @@ variable "enable_deletion_protection" {
 
 variable "aws_region" {
   description = "AWS region (also used for CloudWatch log group region)"
-  type        = string
-}
-
-variable "aws_account_id" {
-  description = "AWS account ID, used to scope SSM parameter ARNs"
   type        = string
 }
 

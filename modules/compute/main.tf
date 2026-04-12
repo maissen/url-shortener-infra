@@ -18,6 +18,9 @@ resource "aws_ecs_cluster_capacity_providers" "this" {
   }
 }
 
+# Fetch user's account details
+data "aws_caller_identity" "current_user" {}
+
 # CloudWatch Logs
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${var.name_prefix}"
@@ -71,7 +74,7 @@ resource "aws_iam_role_policy" "task_execution_ssm" {
       {
         Effect = "Allow"
         Action = ["ssm:GetParameters", "secretsmanager:GetSecretValue"]
-        Resource = "arn:aws:ssm:${var.aws_region}:${var.aws_account_id}:parameter/${var.app_name}/${var.name_prefix}/*"
+        Resource = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current_user.account_id}:parameter/${var.app_name}/${var.name_prefix}/*"
       }
     ]
   })
@@ -182,7 +185,7 @@ resource "aws_ecs_task_definition" "app" {
       secrets = [
         {
           name      = "DYNAMODB_TABLE_NAME"
-          valueFrom = "arn:aws:ssm:${var.aws_region}:${var.aws_account_id}:parameter/${var.app_name}/${var.name_prefix}/dynamodb_table_name"
+          valueFrom = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current_user.account_id}:parameter/${var.app_name}/${var.name_prefix}/dynamodb_table_name"
         }
       ]
 
@@ -190,7 +193,7 @@ resource "aws_ecs_task_definition" "app" {
         logDriver = "awslogs"
         options = {
           awslogs-group         = aws_cloudwatch_log_group.ecs.name
-          awslogs-region        = var.aws_region  # FIX: unified — was separate log_region variable
+          awslogs-region        = var.aws_region
           awslogs-stream-prefix = "ecs"
         }
       }
