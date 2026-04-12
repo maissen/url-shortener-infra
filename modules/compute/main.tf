@@ -171,6 +171,12 @@ resource "aws_ecs_task_definition" "app" {
         }
       ]
 
+      environment = [
+        { name = "APP_ENV",    value = var.name_prefix },
+        { name = "AWS_REGION", value = var.aws_region },
+        { name = "APP_NAME",   value = var.app_name }
+      ]
+
       secrets = [
         {
           name      = "DYNAMODB_TABLE_NAME"
