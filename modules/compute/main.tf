@@ -48,6 +48,11 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "aws_iam_role_policy_attachment" "ssm_read" {
+  role       = aws_iam_role.task_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+}
+
 # IAM — Task role
 resource "aws_iam_role" "task_role" {
   name = "${var.name_prefix}-ecs-task-role"
@@ -61,22 +66,6 @@ resource "aws_iam_role" "task_role" {
         Service = "ecs-tasks.amazonaws.com"
       }
     }]
-  })
-}
-
-resource "aws_iam_role_policy" "task_execution_ssm" {
-  name = "${var.name_prefix}-execution-ssm-policy"
-  role = aws_iam_role.task_execution.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = ["ssm:GetParameters", "secretsmanager:GetSecretValue"]
-        Resource = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current_user.account_id}:parameter/${var.app_name}/${var.name_prefix}/*"
-      }
-    ]
   })
 }
 
