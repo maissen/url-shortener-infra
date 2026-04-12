@@ -69,6 +69,11 @@ resource "aws_iam_role" "task_role" {
   })
 }
 
+resource "aws_iam_role_policy_attachment" "dynamo" {
+  role       = aws_iam_role.task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+}
+
 # Security Groups
 resource "aws_security_group" "alb_sg" {
   name   = "${var.name_prefix}-alb-sg"
