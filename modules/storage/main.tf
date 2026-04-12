@@ -12,3 +12,9 @@ resource "aws_dynamodb_table" "urls" {
     Environment = var.name_prefix
   }
 }
+
+resource "aws_ssm_parameter" "dynamodb_table_name" {
+  name  = "/${var.app_name}/${var.name_prefix}/dynamodb_table_name"
+  type  = "String"
+  value = aws_dynamodb_table.urls.name
+}
