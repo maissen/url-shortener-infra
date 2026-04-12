@@ -1,5 +1,5 @@
 resource "aws_dynamodb_table" "urls" {
-  name         = "${var.name_prefix}-url-shortener"
+  name         = "${var.name_prefix}-urls"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "code"
 
