@@ -24,7 +24,7 @@ resource "aws_cloudwatch_log_group" "ecs" {
   # retention_in_days = 7
 }
 
-# IAM - Execution role
+# IAM — Execution role
 resource "aws_iam_role" "task_execution" {
   name = "${var.name_prefix}-ecs-task-execution-role"
 
@@ -45,14 +45,39 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# IAM - Task role
+# IAM — Task role
 resource "aws_iam_role" "task_role" {
   name = "${var.name_prefix}-ecs-task-role"
-  assume_role_policy = aws_iam_role.task_execution.assume_role_policy
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "task_execution_ssm" {
+  name = "${var.name_prefix}-execution-ssm-policy"
+  role = aws_iam_role.task_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = ["ssm:GetParameters", "secretsmanager:GetSecretValue"]
+        Resource = "arn:aws:ssm:${var.aws_region}:${var.aws_account_id}:parameter/${var.app_name}/${var.name_prefix}/*"
+      }
+    ]
+  })
 }
 
 # Security Groups
-
 resource "aws_security_group" "alb_sg" {
   name   = "${var.name_prefix}-alb-sg"
   vpc_id = var.vpc_id
@@ -135,7 +160,7 @@ resource "aws_lb_listener" "http" {
 # ECS Task Definition
 resource "aws_ecs_task_definition" "app" {
   family                   = "${var.name_prefix}-task"
-  requires_compatibilities  = ["FARGATE"]
+  requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = "256"
   memory                   = "512"
@@ -144,8 +169,8 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([
     {
-      name  = var.container_name
-      image = var.image
+      name      = var.container_name
+      image     = var.image
       essential = true
 
       portMappings = [
@@ -154,11 +179,18 @@ resource "aws_ecs_task_definition" "app" {
         }
       ]
 
+      secrets = [
+        {
+          name      = "DYNAMODB_TABLE_NAME"
+          valueFrom = "arn:aws:ssm:${var.aws_region}:${var.aws_account_id}:parameter/${var.app_name}/${var.name_prefix}/dynamodb_table_name"
+        }
+      ]
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
           awslogs-group         = aws_cloudwatch_log_group.ecs.name
-          awslogs-region        = var.log_region
+          awslogs-region        = var.aws_region  # FIX: unified — was separate log_region variable
           awslogs-stream-prefix = "ecs"
         }
       }
@@ -187,7 +219,7 @@ resource "aws_ecs_service" "app" {
   }
 
   lifecycle {
-    ignore_changes = [task_definition]
+    ignore_changes = [task_definition, desired_count]
   }
 
   health_check_grace_period_seconds = 60

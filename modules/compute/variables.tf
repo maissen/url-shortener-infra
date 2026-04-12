@@ -49,3 +49,29 @@ variable "enable_deletion_protection" {
   type = bool
   default = true
 }
+
+variable "aws_region" {
+  description = "AWS region (also used for CloudWatch log group region)"
+  type        = string
+}
+
+variable "aws_account_id" {
+  description = "AWS account ID, used to scope SSM parameter ARNs"
+  type        = string
+}
+
+variable "enable_deletion_protection" {
+  description = "Enable deletion protection for ALB"
+  type        = bool
+  default     = true
+}
+
+variable "dynamodb_table_arn" {
+  description = "ARN of the DynamoDB table the ECS task is allowed to access"
+  type        = string
+}
+
+variable "app_name" {
+  description = "Application name, used to namespace SSM parameters"
+  type        = string
+}
