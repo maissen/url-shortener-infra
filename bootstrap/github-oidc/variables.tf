@@ -34,17 +34,17 @@ variable "ecr_repo_name" {
 }
 
 variable "ecs_cluster_name" {
-  description = "Base ECS cluster name"
+  description = "Base ECS cluster name (without env)"
   type        = string
 }
 
 variable "ecs_service_name" {
-  description = "Base ECS service name"
+  description = "Base ECS service name (without env)"
   type        = string
 }
 
 variable "ecs_task_def_name" {
-  description = "Base ECS task definition name"
+  description = "Base ECS task definition name (without env)"
   type        = string
 }
 
