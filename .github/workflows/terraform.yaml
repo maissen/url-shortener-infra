@@ -1,0 +1,114 @@
+name: Terraform Pipeline
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      qa:      ${{ steps.filter.outputs.qa }}
+      staging: ${{ steps.filter.outputs.staging }}
+      prod:    ${{ steps.filter.outputs.prod }}
+      modules: ${{ steps.filter.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            qa:
+              - 'environments/qa/**'
+            staging:
+              - 'environments/staging/**'
+            prod:
+              - 'environments/prod/**'
+            modules:
+              - 'modules/**'
+
+  plan-qa:
+    name: Plan / QA
+    needs: changes
+    if: needs.changes.outputs.qa == 'true' || needs.changes.outputs.modules == 'true'
+    uses: ./.github/workflows/_plan.yaml
+    secrets:
+      role_arn: ${{ var.AWS_ROLE_ARN_QA }}
+      health_check_url: ${{ secrets.HEALTH_CHECK_URL_QA }}
+    with:
+      env: qa
+      dir: environments/qa
+
+  plan-staging:
+    name: Plan / Staging
+    needs: changes
+    if: needs.changes.outputs.staging == 'true' || needs.changes.outputs.modules == 'true'
+    uses: ./.github/workflows/_plan.yaml
+    secrets:
+      role_arn: ${{ var.AWS_ROLE_ARN_STAGING }}
+      health_check_url: ${{ secrets.HEALTH_CHECK_URL_STAGING }}
+    with:
+      env: staging
+      dir: environments/staging
+
+  plan-prod:
+    name: Plan / Prod
+    needs: changes
+    if: needs.changes.outputs.prod == 'true' || needs.changes.outputs.modules == 'true'
+    uses: ./.github/workflows/_plan.yaml
+    secrets:
+      role_arn: ${{ var.AWS_ROLE_ARN_PROD }}
+      health_check_url: ${{ secrets.HEALTH_CHECK_URL_PROD }}
+    with:
+      env: prod
+      dir: environments/prod
+
+  apply-qa:
+    name: Apply / QA
+    needs: [changes, plan-qa]
+    if: |
+      github.event_name == 'push' &&
+      (needs.changes.outputs.qa == 'true' || needs.changes.outputs.modules == 'true')
+    uses: ./.github/workflows/_apply.yaml
+    secrets:
+      role_arn: ${{ var.AWS_ROLE_ARN_QA }}
+      health_check_url: ${{ secrets.HEALTH_CHECK_URL_QA }}
+    with:
+      env: qa
+      dir: environments/qa
+
+  apply-staging:
+    name: Apply / Staging
+    needs: [changes, plan-staging, apply-qa]
+    if: |
+      github.event_name == 'push' &&
+      (needs.changes.outputs.staging == 'true' || needs.changes.outputs.modules == 'true')
+    uses: ./.github/workflows/_apply.yaml
+    secrets:
+      role_arn: ${{ var.AWS_ROLE_ARN_STAGING }}
+      health_check_url: ${{ secrets.HEALTH_CHECK_URL_STAGING }}
+    with:
+      env: staging
+      dir: environments/staging
+
+  apply-prod:
+    name: Apply / Prod
+    needs: [changes, plan-prod, apply-staging]
+    if: |
+      github.event_name == 'push' &&
+      (needs.changes.outputs.prod == 'true' || needs.changes.outputs.modules == 'true')
+    uses: ./.github/workflows/_apply.yaml
+    secrets:
+      role_arn: ${{ var.AWS_ROLE_ARN_PROD }}
+      health_check_url: ${{ secrets.HEALTH_CHECK_URL_PROD }}
+    with:
+      env: prod
+      dir: environments/prod
