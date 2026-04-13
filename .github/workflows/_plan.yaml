@@ -1,0 +1,68 @@
+name: Plan
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        required: true
+        type: string
+      dir:
+        required: true
+        type: string
+
+    secrets:
+      role_arn:
+        required: true
+      health_check_url:
+        required: false
+
+jobs:
+  plan:
+    name: Plan / ${{ inputs.env }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.dir }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.role_arn }}
+          aws-region: ${{ var.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ var.TF_VERSION }}
+
+      - run: terraform fmt -check -recursive
+      - run: terraform init
+      - run: terraform validate
+
+      - name: Terraform plan
+        run: |
+          terraform plan -var-file=terraform.tfvars -no-color -out=tfplan 2>&1 | tee plan_output.txt
+
+      - name: Post plan as PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('${{ inputs.dir }}/plan_output.txt', 'utf8');
+            const truncated = plan.length > 60000 ? plan.slice(0, 60000) + '\n... truncated' : plan;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Terraform Plan — ${{ inputs.env }}\n\`\`\`\n${truncated}\n\`\`\``
+            });
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ inputs.env }}
+          path: ${{ inputs.dir }}/tfplan
+          retention-days: 1
