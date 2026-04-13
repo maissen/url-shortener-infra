@@ -56,12 +56,9 @@ data "aws_iam_policy_document" "assume_backend" {
     }
 
     condition {
-      test     = "StringLike"
+      test     = "StringEquals"
       variable = local.oidc_sub
-      values = [
-        "repo:${var.backend_github_repo}:ref:refs/heads/main",
-        "repo:${var.backend_github_repo}:ref:refs/heads/releases/*"
-      ]
+      values   = ["repo:${var.backend_github_repo}:environment:${each.key}"]
     }
   }
 }
@@ -86,11 +83,9 @@ data "aws_iam_policy_document" "assume_terraform" {
     }
 
     condition {
-      test     = "StringLike"
+      test     = "StringEquals"
       variable = local.oidc_sub
-      values = [
-        "repo:${var.terraform_github_repo}:ref:refs/heads/main"
-      ]
+      values   = ["repo:${var.terraform_github_repo}:environment:${each.key}"]
     }
   }
 }
