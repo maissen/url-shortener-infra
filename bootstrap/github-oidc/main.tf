@@ -6,10 +6,11 @@ resource "aws_iam_openid_connect_provider" "github" {
 data "aws_caller_identity" "current" {}
 
 locals {
-  account_id  = data.aws_caller_identity.current.account_id
-  oidc_arn    = aws_iam_openid_connect_provider.github.arn
-  oidc_sub    = "token.actions.githubusercontent.com:sub"
-  oidc_aud    = "token.actions.githubusercontent.com:aud"
+  account_id = data.aws_caller_identity.current.account_id
+
+  oidc_arn = aws_iam_openid_connect_provider.github.arn
+  oidc_sub = "token.actions.githubusercontent.com:sub"
+  oidc_aud = "token.actions.githubusercontent.com:aud"
 
   envs = ["qa", "staging", "prod"]
 
@@ -18,11 +19,35 @@ locals {
     staging = var.name_prefix_staging
     prod    = var.name_prefix_prod
   }
+
+  # Consistent naming
+  ecr_repo = {
+    for env in local.envs :
+    env => "${local.env_prefix[env]}-${var.ecr_repo_name}"
+  }
+
+  ecs_cluster = {
+    for env in local.envs :
+    env => "${local.env_prefix[env]}-${var.ecs_cluster_name}"
+  }
+
+  ecs_service = {
+    for env in local.envs :
+    env => "${local.env_prefix[env]}-${var.ecs_service_name}"
+  }
+
+  ecs_task_def = {
+    for env in local.envs :
+    env => "${local.env_prefix[env]}-${var.ecs_task_def_name}"
+  }
 }
 
-# Assume-role policy factory
-data "aws_iam_policy_document" "assume" {
-  for_each = toset(["qa", "staging", "prod"])
+# =========================
+# Assume Role Policies
+# =========================
+
+data "aws_iam_policy_document" "assume_backend" {
+  for_each = toset(local.envs)
 
   statement {
     effect  = "Allow"
@@ -42,17 +67,51 @@ data "aws_iam_policy_document" "assume" {
     condition {
       test     = "StringLike"
       variable = local.oidc_sub
-      values   = ["repo:${var.github_repo}:*"]
+      values = [
+        "repo:${var.backend_github_repo}:ref:refs/heads/main",
+        "repo:${var.backend_github_repo}:ref:refs/heads/releases/*"
+      ]
     }
   }
 }
 
-# BACKEND roles
+data "aws_iam_policy_document" "assume_terraform" {
+  for_each = toset(local.envs)
+
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [local.oidc_arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = local.oidc_aud
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringLike"
+      variable = local.oidc_sub
+      values = [
+        "repo:${var.terraform_github_repo}:ref:refs/heads/main"
+      ]
+    }
+  }
+}
+
+# =========================
+# Backend Roles (CI/CD)
+# =========================
+
 resource "aws_iam_role" "backend" {
   for_each = toset(local.envs)
 
   name               = "gh-actions-backend-${each.key}"
-  assume_role_policy = data.aws_iam_policy_document.assume[each.key].json
+  assume_role_policy = data.aws_iam_policy_document.assume_backend[each.key].json
 
   tags = {
     Environment = each.key
@@ -76,7 +135,8 @@ resource "aws_iam_role_policy" "backend" {
         Action   = ["ecr:GetAuthorizationToken"]
         Resource = "*"
       },
-      # ECR push
+
+      # ECR push (env-scoped)
       {
         Sid    = "ECRPush"
         Effect = "Allow"
@@ -87,44 +147,50 @@ resource "aws_iam_role_policy" "backend" {
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
           "ecr:DescribeRepositories",
-          "ecr:BatchGetImage",
+          "ecr:BatchGetImage"
         ]
-        Resource = "arn:aws:ecr:${var.aws_region}:${local.account_id}:repository/${local.env_prefix[each.key]}-*"
+        Resource = "arn:aws:ecr:${var.aws_region}:${local.account_id}:repository/${local.ecr_repo[each.key]}"
       },
-      # ECS update
+
+      # ECS update (env-scoped)
       {
         Sid    = "ECSUpdate"
         Effect = "Allow"
         Action = [
           "ecs:UpdateService",
           "ecs:DescribeServices",
+          "ecs:DescribeClusters",
           "ecs:RegisterTaskDefinition",
           "ecs:DescribeTaskDefinition",
-          "ecs:ListTaskDefinitions",
+          "ecs:ListTaskDefinitions"
         ]
         Resource = [
-          "arn:aws:ecs:${var.aws_region}:${local.account_id}:cluster/${local.env_prefix[each.key]}-*",
-          "arn:aws:ecs:${var.aws_region}:${local.account_id}:service/${local.env_prefix[each.key]}-*/*",
-          "arn:aws:ecs:${var.aws_region}:${local.account_id}:task-definition/${local.env_prefix[each.key]}-*:*",
+          "arn:aws:ecs:${var.aws_region}:${local.account_id}:cluster/${local.ecs_cluster[each.key]}",
+          "arn:aws:ecs:${var.aws_region}:${local.account_id}:service/${local.ecs_cluster[each.key]}/${local.ecs_service[each.key]}",
+          "arn:aws:ecs:${var.aws_region}:${local.account_id}:task-definition/${local.ecs_task_def[each.key]}:*"
         ]
       },
-      # PassRole so ECS can assume the task execution role
+
+      # Allow passing task execution roles
       {
         Sid    = "PassTaskExecutionRole"
         Effect = "Allow"
         Action = ["iam:PassRole"]
         Resource = "arn:aws:iam::${local.account_id}:role/${local.env_prefix[each.key]}-*"
-      },
+      }
     ]
   })
 }
 
-# TERRAFORM roles
+# =========================
+# Terraform Roles (Infra)
+# =========================
+
 resource "aws_iam_role" "terraform" {
   for_each = toset(local.envs)
 
   name               = "gh-actions-terraform-${each.key}"
-  assume_role_policy = data.aws_iam_policy_document.assume[each.key].json
+  assume_role_policy = data.aws_iam_policy_document.assume_terraform[each.key].json
 
   tags = {
     Environment = each.key
@@ -141,7 +207,7 @@ resource "aws_iam_role_policy" "terraform" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      # S3 for remote state
+      # Terraform state (S3)
       {
         Sid    = "TFStateBucket"
         Effect = "Allow"
@@ -149,84 +215,92 @@ resource "aws_iam_role_policy" "terraform" {
           "s3:GetObject",
           "s3:PutObject",
           "s3:DeleteObject",
-          "s3:ListBucket",
+          "s3:ListBucket"
         ]
         Resource = [
           "arn:aws:s3:::${var.tf_state_bucket}",
-          "arn:aws:s3:::${var.tf_state_bucket}/${each.key}/*",
+          "arn:aws:s3:::${var.tf_state_bucket}/${each.key}/*"
         ]
       },
-      # DynamoDB for state locking
+
+      # Terraform locking (DynamoDB)
       {
         Sid    = "TFStateLock"
         Effect = "Allow"
         Action = [
           "dynamodb:GetItem",
           "dynamodb:PutItem",
-          "dynamodb:DeleteItem",
+          "dynamodb:DeleteItem"
         ]
         Resource = "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${var.tf_lock_table}"
       },
-      # DynamoDB – backend's tables (storage module)
+
+      # DynamoDB tables (env scoped)
       {
         Sid      = "DynamoDBManage"
         Effect   = "Allow"
         Action   = ["dynamodb:*"]
         Resource = "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${local.env_prefix[each.key]}-*"
       },
-      # ECR full CRUD scoped to env's repositories
+
+      # ECR full access (env scoped)
       {
         Sid      = "ECRManage"
         Effect   = "Allow"
         Action   = ["ecr:*"]
-        Resource = "arn:aws:ecr:${var.aws_region}:${local.account_id}:repository/${local.env_prefix[each.key]}-*"
+        Resource = "arn:aws:ecr:${var.aws_region}:${local.account_id}:repository/${local.ecr_repo[each.key]}"
       },
-      # ECR auth token
+
       {
         Sid      = "ECRAuth"
         Effect   = "Allow"
         Action   = ["ecr:GetAuthorizationToken"]
         Resource = "*"
       },
-      # ECS with full CRUD scoped to env's clusters/services/task defs
+
+      # ECS full access (env scoped)
       {
         Sid    = "ECSManage"
         Effect = "Allow"
         Action = ["ecs:*"]
         Resource = [
-          "arn:aws:ecs:${var.aws_region}:${local.account_id}:cluster/${local.env_prefix[each.key]}-*",
-          "arn:aws:ecs:${var.aws_region}:${local.account_id}:service/${local.env_prefix[each.key]}-*/*",
-          "arn:aws:ecs:${var.aws_region}:${local.account_id}:task-definition/${local.env_prefix[each.key]}-*:*",
+          "arn:aws:ecs:${var.aws_region}:${local.account_id}:cluster/${local.ecs_cluster[each.key]}",
+          "arn:aws:ecs:${var.aws_region}:${local.account_id}:service/${local.ecs_cluster[each.key]}/${local.ecs_service[each.key]}",
+          "arn:aws:ecs:${var.aws_region}:${local.account_id}:task-definition/${local.ecs_task_def[each.key]}:*"
         ]
       },
-      # IAM with full CRUD on task/execution roles env-scoped
+
+      # IAM roles (env scoped)
       {
         Sid      = "IAMTaskRoles"
         Effect   = "Allow"
         Action   = ["iam:*"]
         Resource = "arn:aws:iam::${local.account_id}:role/${local.env_prefix[each.key]}-*"
       },
-      # EC2 and VPC with networking CRUD for the env's resources
+
+      # EC2 / VPC (broad, acceptable for now)
       {
         Sid      = "VPCManage"
         Effect   = "Allow"
         Action   = ["ec2:*"]
         Resource = "*"
       },
-      # CloudWatch Logs with full CRUD scoped to the env's log groups
+
+      # Logs
       {
         Sid      = "LogsManage"
         Effect   = "Allow"
         Action   = ["logs:*"]
         Resource = "arn:aws:logs:${var.aws_region}:${local.account_id}:log-group:/ecs/${local.env_prefix[each.key]}-*"
       },
-      # SSM parameter reads
+
+      # SSM
       {
         Sid      = "SSMRead"
         Effect   = "Allow"
         Action   = ["ssm:*"]
         Resource = "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/${local.env_prefix[each.key]}/*"
-      },
+      }
     ]
   })
 }

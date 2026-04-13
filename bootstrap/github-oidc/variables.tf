@@ -3,23 +3,48 @@ variable "aws_region" {
   type        = string
 }
 
-variable "github_repo" {
-  description = "GitHub repository in the format org/repo (e.g. maissen/url-shortener-backend)"
+variable "backend_github_repo" {
+  description = "GitHub repository in the format org/repo"
+  type        = string
+}
+
+variable "terraform_github_repo" {
+  description = "GitHub repository for Terraform (org/repo)"
   type        = string
 }
 
 variable "name_prefix_qa" {
-  description = "Resource name prefix for the QA environment (e.g. url-shortener-qa)"
+  description = "Resource name prefix for the QA environment"
   type        = string
 }
 
 variable "name_prefix_staging" {
-  description = "Resource name prefix for the Staging environment (e.g. url-shortener-staging)"
+  description = "Resource name prefix for the Staging environment"
   type        = string
 }
 
 variable "name_prefix_prod" {
-  description = "Resource name prefix for the Prod environment (e.g. url-shortener-prod)"
+  description = "Resource name prefix for the Prod environment"
+  type        = string
+}
+
+variable "ecr_repo_name" {
+  description = "Base ECR repository name"
+  type        = string
+}
+
+variable "ecs_cluster_name" {
+  description = "Base ECS cluster name"
+  type        = string
+}
+
+variable "ecs_service_name" {
+  description = "Base ECS service name"
+  type        = string
+}
+
+variable "ecs_task_def_name" {
+  description = "Base ECS task definition name"
   type        = string
 }
 
