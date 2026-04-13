@@ -1,46 +1,35 @@
 variable "aws_region" {
-  description = "AWS region for bootstrap resources"
+  description = "AWS region for all resources"
   type        = string
 }
 
 variable "github_repo" {
-  description = "GitHub repository in the format org/repo"
+  description = "GitHub repository in the format org/repo (e.g. maissen/url-shortener-backend)"
   type        = string
 }
 
-variable "ecr_repo_name" {
-  description = "Name of the ECR repository"
+variable "name_prefix_qa" {
+  description = "Resource name prefix for the QA environment (e.g. url-shortener-qa)"
   type        = string
 }
 
-variable "staging_ecs_cluster_name" {
-  description = "Staging ECS cluster name"
+variable "name_prefix_staging" {
+  description = "Resource name prefix for the Staging environment (e.g. url-shortener-staging)"
   type        = string
 }
 
-variable "staging_ecs_service_name" {
-  description = "Staging ECS service name"
+variable "name_prefix_prod" {
+  description = "Resource name prefix for the Prod environment (e.g. url-shortener-prod)"
   type        = string
 }
 
-variable "prod_ecs_cluster_name" {
-  description = "Prod ECS cluster name"
+# Terraform remote state
+variable "tf_state_bucket" {
+  description = "S3 bucket name that holds Terraform remote state"
   type        = string
 }
 
-variable "prod_ecs_service_name" {
-  description = "Prod ECS service name"
+variable "tf_lock_table" {
+  description = "DynamoDB table name used for Terraform state locking"
   type        = string
-}
-
-variable "github_role_name" {
-  description = "Name of the GitHub Actions IAM role"
-  type        = string
-  default     = "github-actions-deploy-role"
-}
-
-variable "github_policy_name" {
-  description = "Name of the IAM policy for GitHub Actions"
-  type        = string
-  default     = "github-actions-deploy-policy"
 }
