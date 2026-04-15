@@ -31,11 +31,11 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.role_arn }}
-          aws-region: ${{ var.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ var.TF_VERSION }}
+          terraform_version: ${{ vars.TF_VERSION }}
 
       - run: terraform init
 
