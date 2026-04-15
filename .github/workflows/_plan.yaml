@@ -9,21 +9,27 @@ on:
       dir:
         required: true
         type: string
+      aws_region:
+        required: true
+        type: string
+      tf_version:
+        required: true
+        type: string
 
     secrets:
       role_arn:
         required: true
-      health_check_url:
-        required: false
 
 jobs:
   plan:
     name: Plan / ${{ inputs.env }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
+
     defaults:
       run:
         working-directory: ${{ inputs.dir }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -31,11 +37,11 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.role_arn }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ inputs.aws_region }}
 
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ vars.TF_VERSION }}
+          terraform_version: ${{ inputs.tf_version }}
 
       - run: terraform fmt -check -recursive
       - run: terraform init

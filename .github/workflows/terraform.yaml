@@ -23,6 +23,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -36,6 +37,8 @@ jobs:
             modules:
               - 'modules/**'
 
+  # ---------- PLAN ----------
+
   plan-qa:
     name: Plan / QA
     needs: changes
@@ -43,10 +46,11 @@ jobs:
     uses: ./.github/workflows/_plan.yaml
     secrets:
       role_arn: ${{ vars.AWS_ROLE_ARN_QA }}
-      health_check_url: ${{ vars.HEALTH_CHECK_URL_QA }}
     with:
       env: qa
       dir: environments/qa
+      aws_region: ${{ vars.AWS_REGION }}
+      tf_version: ${{ vars.TF_VERSION }}
 
   plan-staging:
     name: Plan / Staging
@@ -55,10 +59,11 @@ jobs:
     uses: ./.github/workflows/_plan.yaml
     secrets:
       role_arn: ${{ vars.AWS_ROLE_ARN_STAGING }}
-      health_check_url: ${{ vars.HEALTH_CHECK_URL_STAGING }}
     with:
       env: staging
       dir: environments/staging
+      aws_region: ${{ vars.AWS_REGION }}
+      tf_version: ${{ vars.TF_VERSION }}
 
   plan-prod:
     name: Plan / Prod
@@ -67,49 +72,49 @@ jobs:
     uses: ./.github/workflows/_plan.yaml
     secrets:
       role_arn: ${{ vars.AWS_ROLE_ARN_PROD }}
-      health_check_url: ${{ vars.HEALTH_CHECK_URL_PROD }}
     with:
       env: prod
       dir: environments/prod
+      aws_region: ${{ vars.AWS_REGION }}
+      tf_version: ${{ vars.TF_VERSION }}
+
+  # ---------- APPLY ----------
 
   apply-qa:
     name: Apply / QA
     needs: [changes, plan-qa]
-    if: |
-      github.event_name == 'push' &&
-      (needs.changes.outputs.qa == 'true' || needs.changes.outputs.modules == 'true')
+    if: github.event_name == 'push' &&
+        (needs.changes.outputs.qa == 'true' || needs.changes.outputs.modules == 'true')
     uses: ./.github/workflows/_apply.yaml
     secrets:
       role_arn: ${{ vars.AWS_ROLE_ARN_QA }}
-      health_check_url: ${{ vars.HEALTH_CHECK_URL_QA }}
     with:
       env: qa
       dir: environments/qa
+      health_check_url: ${{ vars.HEALTH_CHECK_URL_QA }}
 
   apply-staging:
     name: Apply / Staging
     needs: [changes, plan-staging, apply-qa]
-    if: |
-      github.event_name == 'push' &&
-      (needs.changes.outputs.staging == 'true' || needs.changes.outputs.modules == 'true')
+    if: github.event_name == 'push' &&
+        (needs.changes.outputs.staging == 'true' || needs.changes.outputs.modules == 'true')
     uses: ./.github/workflows/_apply.yaml
     secrets:
       role_arn: ${{ vars.AWS_ROLE_ARN_STAGING }}
-      health_check_url: ${{ vars.HEALTH_CHECK_URL_STAGING }}
     with:
       env: staging
       dir: environments/staging
+      health_check_url: ${{ vars.HEALTH_CHECK_URL_STAGING }}
 
   apply-prod:
     name: Apply / Prod
     needs: [changes, plan-prod, apply-staging]
-    if: |
-      github.event_name == 'push' &&
-      (needs.changes.outputs.prod == 'true' || needs.changes.outputs.modules == 'true')
+    if: github.event_name == 'push' &&
+        (needs.changes.outputs.prod == 'true' || needs.changes.outputs.modules == 'true')
     uses: ./.github/workflows/_apply.yaml
     secrets:
       role_arn: ${{ vars.AWS_ROLE_ARN_PROD }}
-      health_check_url: ${{ vars.HEALTH_CHECK_URL_PROD }}
     with:
       env: prod
       dir: environments/prod
+      health_check_url: ${{ vars.HEALTH_CHECK_URL_PROD }}

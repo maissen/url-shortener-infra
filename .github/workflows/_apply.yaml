@@ -9,21 +9,24 @@ on:
       dir:
         required: true
         type: string
+      health_check_url:
+        required: false
+        type: string
 
     secrets:
       role_arn:
         required: true
-      health_check_url:
-        required: false
 
 jobs:
   apply:
     name: Apply / ${{ inputs.env }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
+
     defaults:
       run:
         working-directory: ${{ inputs.dir }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -45,11 +48,12 @@ jobs:
           name: tfplan-${{ inputs.env }}
           path: ${{ inputs.dir }}
 
-      - run: terraform apply -auto-approve tfplan
+      - name: Apply Terraform
+        run: terraform apply -auto-approve "tfplan"
 
       - name: Post-apply health check
-        if: ${{ secrets.health_check_url != ""}}
+        if: ${{ inputs.health_check_url != '' }}
         run: |
           sleep 30
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.health_check_url }}")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ inputs.health_check_url }}")
           [ "$STATUS" = "200" ] || { echo "Health check failed — HTTP $STATUS"; exit 1; }
