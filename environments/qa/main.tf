@@ -1,4 +1,4 @@
-# Networking
+# Networking module
 module "networking" {
   source = "../../modules/networking"
 
