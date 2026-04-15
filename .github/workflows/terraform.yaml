@@ -20,6 +20,7 @@ jobs:
       staging: ${{ steps.filter.outputs.staging }}
       prod:    ${{ steps.filter.outputs.prod }}
       modules: ${{ steps.filter.outputs.modules }}
+
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -42,7 +43,7 @@ jobs:
     uses: ./.github/workflows/_plan.yaml
     secrets:
       role_arn: ${{ var.AWS_ROLE_ARN_QA }}
-      health_check_url: ${{ secrets.HEALTH_CHECK_URL_QA }}
+      health_check_url: ${{ var.HEALTH_CHECK_URL_QA }}
     with:
       env: qa
       dir: environments/qa
@@ -54,7 +55,7 @@ jobs:
     uses: ./.github/workflows/_plan.yaml
     secrets:
       role_arn: ${{ var.AWS_ROLE_ARN_STAGING }}
-      health_check_url: ${{ secrets.HEALTH_CHECK_URL_STAGING }}
+      health_check_url: ${{ var.HEALTH_CHECK_URL_STAGING }}
     with:
       env: staging
       dir: environments/staging
@@ -66,7 +67,7 @@ jobs:
     uses: ./.github/workflows/_plan.yaml
     secrets:
       role_arn: ${{ var.AWS_ROLE_ARN_PROD }}
-      health_check_url: ${{ secrets.HEALTH_CHECK_URL_PROD }}
+      health_check_url: ${{ var.HEALTH_CHECK_URL_PROD }}
     with:
       env: prod
       dir: environments/prod
@@ -80,7 +81,7 @@ jobs:
     uses: ./.github/workflows/_apply.yaml
     secrets:
       role_arn: ${{ var.AWS_ROLE_ARN_QA }}
-      health_check_url: ${{ secrets.HEALTH_CHECK_URL_QA }}
+      health_check_url: ${{ var.HEALTH_CHECK_URL_QA }}
     with:
       env: qa
       dir: environments/qa
@@ -94,7 +95,7 @@ jobs:
     uses: ./.github/workflows/_apply.yaml
     secrets:
       role_arn: ${{ var.AWS_ROLE_ARN_STAGING }}
-      health_check_url: ${{ secrets.HEALTH_CHECK_URL_STAGING }}
+      health_check_url: ${{ var.HEALTH_CHECK_URL_STAGING }}
     with:
       env: staging
       dir: environments/staging
@@ -108,7 +109,7 @@ jobs:
     uses: ./.github/workflows/_apply.yaml
     secrets:
       role_arn: ${{ var.AWS_ROLE_ARN_PROD }}
-      health_check_url: ${{ secrets.HEALTH_CHECK_URL_PROD }}
+      health_check_url: ${{ var.HEALTH_CHECK_URL_PROD }}
     with:
       env: prod
       dir: environments/prod
