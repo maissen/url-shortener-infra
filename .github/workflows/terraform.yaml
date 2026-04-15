@@ -42,8 +42,8 @@ jobs:
     if: needs.changes.outputs.qa == 'true' || needs.changes.outputs.modules == 'true'
     uses: ./.github/workflows/_plan.yaml
     secrets:
-      role_arn: ${{ var.AWS_ROLE_ARN_QA }}
-      health_check_url: ${{ var.HEALTH_CHECK_URL_QA }}
+      role_arn: ${{ vars.AWS_ROLE_ARN_QA }}
+      health_check_url: ${{ vars.HEALTH_CHECK_URL_QA }}
     with:
       env: qa
       dir: environments/qa
@@ -54,8 +54,8 @@ jobs:
     if: needs.changes.outputs.staging == 'true' || needs.changes.outputs.modules == 'true'
     uses: ./.github/workflows/_plan.yaml
     secrets:
-      role_arn: ${{ var.AWS_ROLE_ARN_STAGING }}
-      health_check_url: ${{ var.HEALTH_CHECK_URL_STAGING }}
+      role_arn: ${{ vars.AWS_ROLE_ARN_STAGING }}
+      health_check_url: ${{ vars.HEALTH_CHECK_URL_STAGING }}
     with:
       env: staging
       dir: environments/staging
@@ -66,8 +66,8 @@ jobs:
     if: needs.changes.outputs.prod == 'true' || needs.changes.outputs.modules == 'true'
     uses: ./.github/workflows/_plan.yaml
     secrets:
-      role_arn: ${{ var.AWS_ROLE_ARN_PROD }}
-      health_check_url: ${{ var.HEALTH_CHECK_URL_PROD }}
+      role_arn: ${{ vars.AWS_ROLE_ARN_PROD }}
+      health_check_url: ${{ vars.HEALTH_CHECK_URL_PROD }}
     with:
       env: prod
       dir: environments/prod
@@ -80,8 +80,8 @@ jobs:
       (needs.changes.outputs.qa == 'true' || needs.changes.outputs.modules == 'true')
     uses: ./.github/workflows/_apply.yaml
     secrets:
-      role_arn: ${{ var.AWS_ROLE_ARN_QA }}
-      health_check_url: ${{ var.HEALTH_CHECK_URL_QA }}
+      role_arn: ${{ vars.AWS_ROLE_ARN_QA }}
+      health_check_url: ${{ vars.HEALTH_CHECK_URL_QA }}
     with:
       env: qa
       dir: environments/qa
@@ -94,8 +94,8 @@ jobs:
       (needs.changes.outputs.staging == 'true' || needs.changes.outputs.modules == 'true')
     uses: ./.github/workflows/_apply.yaml
     secrets:
-      role_arn: ${{ var.AWS_ROLE_ARN_STAGING }}
-      health_check_url: ${{ var.HEALTH_CHECK_URL_STAGING }}
+      role_arn: ${{ vars.AWS_ROLE_ARN_STAGING }}
+      health_check_url: ${{ vars.HEALTH_CHECK_URL_STAGING }}
     with:
       env: staging
       dir: environments/staging
@@ -108,8 +108,8 @@ jobs:
       (needs.changes.outputs.prod == 'true' || needs.changes.outputs.modules == 'true')
     uses: ./.github/workflows/_apply.yaml
     secrets:
-      role_arn: ${{ var.AWS_ROLE_ARN_PROD }}
-      health_check_url: ${{ var.HEALTH_CHECK_URL_PROD }}
+      role_arn: ${{ vars.AWS_ROLE_ARN_PROD }}
+      health_check_url: ${{ vars.HEALTH_CHECK_URL_PROD }}
     with:
       env: prod
       dir: environments/prod
