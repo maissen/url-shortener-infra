@@ -35,14 +35,14 @@ variable "container_name" {
 
 variable "desired_count" {
   description = "Desired count for ECS tasks"
-  type = number
-  default = 1
+  type        = number
+  default     = 1
 }
 
 variable "enable_deletion_protection" {
   description = "Enable deletion protection for ALB"
-  type = bool
-  default = true
+  type        = bool
+  default     = true
 }
 
 variable "aws_region" {

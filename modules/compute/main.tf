@@ -23,7 +23,7 @@ data "aws_caller_identity" "current_user" {}
 
 # CloudWatch Logs
 resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/ecs/${var.name_prefix}"
+  name = "/ecs/${var.name_prefix}"
   # retention_in_days = 7
 }
 
@@ -34,8 +34,8 @@ resource "aws_iam_role" "task_execution" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action    = "sts:AssumeRole"
-      Effect    = "Allow"
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
       Principal = {
         Service = "ecs-tasks.amazonaws.com"
       }
@@ -60,8 +60,8 @@ resource "aws_iam_role" "task_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action    = "sts:AssumeRole"
-      Effect    = "Allow"
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
       Principal = {
         Service = "ecs-tasks.amazonaws.com"
       }
@@ -118,8 +118,8 @@ resource "aws_lb" "alb" {
   name               = "${var.name_prefix}-alb"
   load_balancer_type = "application"
 
-  subnets         = var.public_subnet_ids
-  security_groups  = [aws_security_group.alb_sg.id]
+  subnets                    = var.public_subnet_ids
+  security_groups            = [aws_security_group.alb_sg.id]
   enable_deletion_protection = var.enable_deletion_protection
 }
 
@@ -177,9 +177,9 @@ resource "aws_ecs_task_definition" "app" {
       ]
 
       environment = [
-        { name = "APP_ENV",    value = var.name_prefix },
+        { name = "APP_ENV", value = var.name_prefix },
         { name = "AWS_REGION", value = var.aws_region },
-        { name = "APP_NAME",   value = var.app_name },
+        { name = "APP_NAME", value = var.app_name },
       ]
 
       secrets = [
@@ -187,9 +187,9 @@ resource "aws_ecs_task_definition" "app" {
           name      = "DYNAMODB_TABLE"
           valueFrom = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current_user.account_id}:parameter/${var.app_name}/${var.name_prefix}/dynamodb_table_name"
         },
-        { 
-          name = "BASE_URL",   
-          valueFrom= "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current_user.account_id}:parameter/${var.app_name}/${var.name_prefix}/base_url"
+        {
+          name      = "BASE_URL",
+          valueFrom = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current_user.account_id}:parameter/${var.app_name}/${var.name_prefix}/base_url"
         }
 
       ]
@@ -215,7 +215,7 @@ resource "aws_ecs_service" "app" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = var.private_subnet_ids
+    subnets          = var.private_subnet_ids
     security_groups  = [aws_security_group.ecs_sg.id]
     assign_public_ip = false
   }
