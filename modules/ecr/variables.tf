@@ -10,8 +10,8 @@ variable "repository_name" {
 
 variable "scan_on_push" {
   description = "Enable/Disable image scanning on push"
-  type = bool
-  default = true
+  type        = bool
+  default     = true
 }
 
 variable "tagged_images_to_keep" {

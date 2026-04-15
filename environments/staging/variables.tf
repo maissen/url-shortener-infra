@@ -5,7 +5,7 @@ variable "environment" {
 
 variable "region" {
   description = "AWS region"
-  type = string
+  type        = string
 }
 
 variable "vpc_cidr" {
@@ -31,7 +31,7 @@ variable "private_subnet_cidrs" {
 
 variable "ecr_repo_url" {
   description = "ECR repository url"
-  type = string
+  type        = string
 }
 
 variable "container_name" {
@@ -57,8 +57,8 @@ variable "desired_count" {
 
 variable "enable_alb_deletion_protection" {
   description = "Enable deletion protection for ALB"
-  type = bool
-  default = true
+  type        = bool
+  default     = true
 }
 
 variable "app_name" {

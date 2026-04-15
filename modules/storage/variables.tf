@@ -5,10 +5,10 @@ variable "name_prefix" {
 
 variable "app_name" {
   description = "App name to prefix Parameter store's parameters with"
-  type = string
+  type        = string
 }
 
 variable "base_url" {
   description = "Base url for the deployed app"
-  type = string
+  type        = string
 }

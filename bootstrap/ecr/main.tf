@@ -1,6 +1,6 @@
 # ECR private repository
 resource "aws_ecr_repository" "ecr" {
-  name = "${var.repository_name}"
+  name                 = var.repository_name
   image_tag_mutability = length(var.mutable_tag_prefixes) > 0 ? "MUTABLE" : "IMMUTABLE"
 
   image_scanning_configuration {
