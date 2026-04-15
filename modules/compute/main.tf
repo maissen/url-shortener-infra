@@ -8,6 +8,7 @@ resource "aws_ecs_cluster" "main" {
   }
 }
 
+# comment
 resource "aws_ecs_cluster_capacity_providers" "this" {
   cluster_name       = aws_ecs_cluster.main.name
   capacity_providers = ["FARGATE"]
