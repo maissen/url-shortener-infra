@@ -44,7 +44,7 @@ jobs:
           terraform_version: ${{ inputs.tf_version }}
 
       - run: terraform fmt -check -recursive
-      - run: terraform init
+      - run: terraform init -backend-config=backend.hcl
       - run: terraform validate
 
       - name: Terraform plan
