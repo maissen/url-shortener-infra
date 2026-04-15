@@ -1,3 +1,4 @@
+# Networking
 module "networking" {
   source = "../../modules/networking"
 
@@ -8,6 +9,7 @@ module "networking" {
   private_subnet_cidrs = var.private_subnet_cidrs
 }
 
+# Compute
 module "compute" {
   source = "../../modules/compute"
 
@@ -29,6 +31,7 @@ module "compute" {
   dynamodb_table_arn = module.storage.dynamodb_table_arn
 }
 
+# Storage
 module "storage" {
   source = "../../modules/storage"
 
