@@ -64,3 +64,8 @@ variable "enable_alb_deletion_protection" {
 variable "app_name" {
   description = "App name to prefix Parameter store's parameters with"
 }
+
+variable "alert_emails" {
+  default = "List of emails to receive CloudWatch alerts"
+  type    = list(string)
+}

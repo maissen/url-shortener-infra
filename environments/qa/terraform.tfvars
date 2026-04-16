@@ -28,3 +28,5 @@ desired_count                  = 1
 enable_alb_deletion_protection = true
 
 app_name = "url-shortener"
+
+alert_emails = ["maissen.developer500@gmail.com"]
