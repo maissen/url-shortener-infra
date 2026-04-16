@@ -13,10 +13,6 @@ variable "alert_emails" {
   type        = list(string)
 }
 
-variable "name_prefix" {
-  type = string
-}
-
 variable "alb_arn_suffix" {
   description = "ALB ARN suffix (from aws_lb)"
   type        = string
