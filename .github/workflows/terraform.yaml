@@ -114,7 +114,6 @@ jobs:
 
   #! STATUS
   pr-status:
-    name: PR Checks Passed
     needs: [plan-qa, plan-staging, plan-prod]
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
