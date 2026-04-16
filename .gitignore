@@ -1,3 +1,5 @@
+set-project.sh
+
 # Local .terraform directories
 .terraform/
 
