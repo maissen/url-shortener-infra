@@ -29,7 +29,7 @@ resource "aws_eip" "nat_eip" {
 
 resource "time_sleep" "wait_for_eip" {
   depends_on      = [aws_eip.nat_eip]
-  create_duration = "60s"
+  create_duration = "120s"
 }
 
 resource "aws_nat_gateway" "nat_gw" {
