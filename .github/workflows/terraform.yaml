@@ -45,7 +45,7 @@ jobs:
     secrets:
       role_arn: ${{ vars.AWS_ROLE_ARN_QA }}
     with:
-      env: qa
+      # env: qa
       dir: environments/qa
       aws_region: ${{ vars.AWS_REGION }}
       tf_version: ${{ vars.TF_VERSION }}
@@ -57,7 +57,7 @@ jobs:
     secrets:
       role_arn: ${{ vars.AWS_ROLE_ARN_STAGING }}
     with:
-      env: staging
+      # env: staging
       dir: environments/staging
       aws_region: ${{ vars.AWS_REGION }}
       tf_version: ${{ vars.TF_VERSION }}
@@ -69,7 +69,7 @@ jobs:
     secrets:
       role_arn: ${{ vars.AWS_ROLE_ARN_PROD }}
     with:
-      env: prod
+      # env: prod
       dir: environments/prod
       aws_region: ${{ vars.AWS_REGION }}
       tf_version: ${{ vars.TF_VERSION }}
