@@ -19,7 +19,7 @@ on:
 
 jobs:
   apply:
-    name: Apply / ${{ inputs.env }}
+    name: apply-${{ inputs.env }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.env }}
 
