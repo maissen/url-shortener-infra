@@ -111,3 +111,12 @@ jobs:
       env: prod
       dir: environments/prod
       health_check_url: ${{ vars.HEALTH_CHECK_URL_PROD }}
+
+  #! STATUS
+  pr-status:
+    name: PR Checks Passed
+    needs: [plan-qa, plan-staging, plan-prod]
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All PR checks passed"
