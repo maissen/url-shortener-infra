@@ -39,3 +39,17 @@ module "storage" {
   app_name    = var.app_name
   base_url    = "http://${module.compute.alb_dns_name}"
 }
+
+# Monitoring
+module "monitoring" {
+  source = "../../modules/monitoring"
+
+  name_prefix             = var.environment
+  alb_arn_suffix          = module.compute.alb_dns_name #!!!!
+  alert_emails            = var.alert_emails
+  aws_region              = var.region
+  target_group_arn_suffix = module.compute.target_group_arn
+  ecs_cluster_name        = module.compute.ecs_cluster_name
+  ecs_service_name        = module.compute.ecs_service_name
+  dynamodb_table_name     = module.storage.dynamodb_table_name
+}
