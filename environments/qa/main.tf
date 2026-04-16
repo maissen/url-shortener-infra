@@ -52,4 +52,10 @@ module "monitoring" {
   ecs_cluster_name        = module.compute.ecs_cluster_name
   ecs_service_name        = module.compute.ecs_service_name
   dynamodb_table_name     = module.storage.dynamodb_table_name
+
+  cpu_target_value = 40
+  max_capacity     = 2
+  min_capacity     = 1
+
+  depends_on = [module.compute]
 }
