@@ -66,6 +66,6 @@ variable "app_name" {
 }
 
 variable "alert_emails" {
-  default = "List of emails to receive CloudWatch alerts"
-  type    = list(string)
+  description = "List of emails to receive CloudWatch alerts"
+  type        = list(string)
 }
