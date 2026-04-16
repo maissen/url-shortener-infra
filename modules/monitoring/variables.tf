@@ -34,3 +34,32 @@ variable "ecs_service_name" {
 variable "dynamodb_table_name" {
   type = string
 }
+
+# auto scaling config
+variable "min_capacity" {
+  description = "Minimum number of ECS tasks"
+  type        = number
+}
+
+variable "max_capacity" {
+  description = "Maximum number of ECS tasks"
+  type        = number
+}
+
+variable "cpu_target_value" {
+  description = "Target CPU utilization percentage for autoscaling"
+  type        = number
+  default     = 60
+}
+
+variable "scale_in_cooldown" {
+  description = "Cooldown period (seconds) before scaling in"
+  type        = number
+  default     = 300
+}
+
+variable "scale_out_cooldown" {
+  description = "Cooldown period (seconds) before scaling out"
+  type        = number
+  default     = 60
+}

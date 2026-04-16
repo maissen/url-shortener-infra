@@ -312,3 +312,35 @@ resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_hosts" {
 
   alarm_actions = [aws_sns_topic.alerts.arn]
 }
+
+# ECS autoscaling target
+resource "aws_appautoscaling_target" "ecs" {
+  service_namespace  = "ecs"
+  scalable_dimension = "ecs:service:DesiredCount"
+
+  resource_id = "service/${var.ecs_cluster_name}/${var.ecs_service_name}"
+
+  min_capacity = var.min_capacity
+  max_capacity = var.max_capacity
+}
+
+# ECS CPU autoscaling policy
+resource "aws_appautoscaling_policy" "ecs_cpu" {
+  name        = "${var.name_prefix}-ecs-cpu-scaling"
+  policy_type = "TargetTrackingScaling"
+
+  resource_id        = aws_appautoscaling_target.ecs.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    target_value = var.cpu_target_value
+
+    scale_in_cooldown  = var.scale_in_cooldown
+    scale_out_cooldown = var.scale_out_cooldown
+
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+  }
+}
