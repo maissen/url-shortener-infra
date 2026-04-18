@@ -158,7 +158,7 @@ Declare the following variables in your repository's **Variables** section:
 
 ## Monitoring
 
-CloudWatch handles observability. Each ECS environment writes structured JSON logs to a dedicated log group with x-day retention.
+CloudWatch handles observability. Each ECS environment writes structured JSON logs to a dedicated log group with 15-day retention.
 
 A CloudWatch dashboard per environment displays key metrics including ALB request count, ECS CPU and memory utilization, and DynamoDB consumed capacity on one screen.
 
