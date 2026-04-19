@@ -83,9 +83,9 @@ data "aws_iam_policy_document" "assume_terraform" {
     }
 
     condition {
-      test     = "StringEquals"
+      test     = "StringLike"
       variable = local.oidc_sub
-      values   = ["repo:${var.terraform_github_repo}:environment:${each.key}"]
+      values   = ["repo:${var.terraform_github_repo}:*"]
     }
   }
 }
