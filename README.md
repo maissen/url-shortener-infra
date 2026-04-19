@@ -26,15 +26,11 @@ Three environments, **QA**, **staging**, and **prod**, are separate Terraform st
 
 **GitHub Actions, Terraform pipeline on pull request**
 <!-- Screenshot: PR showing the plan output posted as a comment for all three environments, with fmt/validate/tflint checks passing. Shows the pipeline structure and plan diff clearly. -->
-![Terraform PR pipeline](docs/screenshots/terraform-pr-pipeline.png)
-
-**GitHub Actions, Application pipeline deploying to staging**
-<!-- Screenshot or GIF: The application pipeline running end to end, test, build, push to ECR, deploy to ECS staging, smoke test passing. A GIF works well here if you can capture the full run. -->
-![App pipeline deploy](docs/screenshots/app-pipeline-deploy.png)
+![Terraform PR pipeline](docs/pr-pipeline.png)
 
 **CloudWatch dashboard, prod environment**
 <!-- Screenshot: The CloudWatch dashboard showing live metrics, ALB request count, ECS CPU/memory, DynamoDB consumed capacity. Captures that monitoring is actually configured and running. -->
-![CloudWatch dashboard](docs/screenshots/cloudwatch-dashboard.png)
+![CloudWatch dashboard](docs/cloudwatch-dashboard.png)
 
 **Live endpoint, curl output**
 <!-- Screenshot: Terminal showing `curl -i https://api.yourdomain.xyz/health` returning HTTP 200 with the JSON response and a valid TLS certificate. Simple but proves the stack is end-to-end working. -->
