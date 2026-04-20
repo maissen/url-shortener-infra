@@ -29,6 +29,16 @@ variable "private_subnet_cidrs" {
   type        = list(string)
 }
 
+variable "nat_subnet_indices" {
+  description = "Indices of public subnets where NAT GWs will be placed. Min 1 entry."
+  type        = list(number)
+
+  validation {
+    condition     = length(var.nat_subnet_indices) >= 1
+    error_message = "At least one NAT Gateway is required."
+  }
+}
+
 variable "ecr_repo_url" {
   description = "ECR repository url"
   type        = string

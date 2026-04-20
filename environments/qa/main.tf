@@ -7,7 +7,7 @@ module "networking" {
   azs                  = var.azs
   public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
-  nat_subnet_indices   = [0, 1]
+  nat_subnet_indices   = var.nat_subnet_indices
 }
 
 # Compute

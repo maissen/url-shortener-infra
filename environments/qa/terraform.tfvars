@@ -19,6 +19,8 @@ private_subnet_cidrs = [
   "10.0.12.0/24",
 ]
 
+nat_subnet_indices = [0, 1]
+
 container_name = "app"
 container_port = 3000
 
