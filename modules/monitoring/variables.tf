@@ -49,7 +49,7 @@ variable "max_capacity" {
 variable "cpu_target_value" {
   description = "Target CPU utilization percentage for autoscaling"
   type        = number
-  default     = 60
+  default     = 80
 }
 
 variable "scale_in_cooldown" {
