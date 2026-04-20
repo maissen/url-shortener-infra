@@ -8,6 +8,11 @@ output "alb_arn" {
   value       = aws_lb.alb.arn
 }
 
+output "alb_arn_suffix" {
+  description = "ARN suffix of the ALB (used for CloudWatch metrics)"
+  value       = aws_lb.alb.arn_suffix
+}
+
 output "alb_zone_id" {
   description = "Zone ID of the ALB"
   value       = aws_lb.alb.zone_id
