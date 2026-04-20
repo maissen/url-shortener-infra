@@ -189,7 +189,7 @@ Authentication uses **OIDC**, no long-lived AWS credentials are stored in GitHub
 
 ## Monitoring
 
-CloudWatch handles observability. Each environment writes structured JSON logs to a dedicated log group with **15-day retention**.
+CloudWatch handles observability. Each environment writes structured JSON logs to a dedicated log group with **14-day retention**.
 
 A CloudWatch dashboard per environment displays: ALB request count, ALB 4xx and 5xx error rates, ECS CPU and memory utilization, and DynamoDB consumed read/write capacity, on a single screen.
 
