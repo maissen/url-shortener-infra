@@ -19,11 +19,13 @@ resource "aws_internet_gateway" "igw" {
 }
 
 # NAT gw
+# one EIP per desired NAT GW
 resource "aws_eip" "nat_eip" {
+  count  = length(var.nat_public_subnet_ids)
   domain = "vpc"
 
   tags = {
-    Name = "${var.name_prefix}-nat-eip"
+    Name = "${var.name_prefix}-nat-eip-${count.index + 1}"
   }
 }
 
@@ -32,12 +34,14 @@ resource "time_sleep" "wait_for_eip" {
   create_duration = "120s"
 }
 
+# NAT GWs one per entry in nat_subnet_indices
 resource "aws_nat_gateway" "nat_gw" {
-  allocation_id = aws_eip.nat_eip.id
-  subnet_id     = aws_subnet.public[0].id
+  count         = length(var.nat_public_subnet_ids)
+  allocation_id = aws_eip.nat_eip[count.index].id
+  subnet_id     = var.nat_public_subnet_ids[count.index]
 
   tags = {
-    Name = "${var.name_prefix}-nat"
+    Name = "${var.name_prefix}-nat-${count.index + 1}"
   }
 
   depends_on = [aws_internet_gateway.igw, time_sleep.wait_for_eip]
@@ -98,25 +102,26 @@ resource "aws_route_table_association" "public_assoc" {
 
 # private route table
 resource "aws_route_table" "private" {
+  count  = length(var.nat_public_subnet_ids)
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "${var.name_prefix}-private-rt"
+    Name = "${var.name_prefix}-private-rt-${count.index + 1}"
   }
 }
 
 # Route to Internet
 resource "aws_route" "private_internet" {
-  route_table_id         = aws_route_table.private.id
+  count                  = length(var.nat_public_subnet_ids)
+  route_table_id         = aws_route_table.private[count.index].id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat_gw.id
+  nat_gateway_id         = aws_nat_gateway.nat_gw[count.index].id
 }
-
 
 # Associate private subnets with private rt
 resource "aws_route_table_association" "private_assoc" {
   count = length(var.private_subnet_cidrs)
 
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.private[count.index % length(var.nat_public_subnet_ids)].id
 }
