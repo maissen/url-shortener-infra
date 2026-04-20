@@ -45,6 +45,12 @@ variable "enable_deletion_protection" {
   default     = true
 }
 
+variable "logs_retention_in_days" {
+  description = "The retention in days of logs in CloudWatch (0 = never expire)"
+  type        = number
+  default     = 14
+}
+
 variable "aws_region" {
   description = "AWS region (also used for CloudWatch log group region)"
   type        = string

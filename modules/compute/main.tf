@@ -23,8 +23,8 @@ data "aws_caller_identity" "current_user" {}
 
 # CloudWatch Logs
 resource "aws_cloudwatch_log_group" "ecs" {
-  name = "/ecs/${var.name_prefix}"
-  # retention_in_days = 7
+  name              = "/ecs/${var.name_prefix}"
+  retention_in_days = var.logs_retention_in_days == 0 ? null : var.logs_retention_in_days
 }
 
 # IAM — Execution role
