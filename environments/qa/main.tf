@@ -24,6 +24,8 @@ module "compute" {
   container_name = var.container_name
   container_port = var.container_port
 
+  logs_retention_in_days = var.logs_retention_in_days
+
   image                      = "${var.ecr_repo_url}:${var.image_tag}"
   desired_count              = var.desired_count
   enable_deletion_protection = var.enable_alb_deletion_protection

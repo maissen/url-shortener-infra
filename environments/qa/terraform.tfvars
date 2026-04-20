@@ -21,6 +21,8 @@ private_subnet_cidrs = [
 
 nat_subnet_indices = [0, 1]
 
+logs_retention_in_days = 0
+
 container_name = "app"
 container_port = 3000
 

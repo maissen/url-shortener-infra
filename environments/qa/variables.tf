@@ -79,3 +79,9 @@ variable "alert_emails" {
   description = "List of emails to receive CloudWatch alerts"
   type        = list(string)
 }
+
+variable "logs_retention_in_days" {
+  description = "The retention in days of logs in CloudWatch (0 = never expire)"
+  type        = number
+  default     = 14
+}
