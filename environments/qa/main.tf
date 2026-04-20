@@ -45,7 +45,7 @@ module "monitoring" {
   source = "../../modules/monitoring"
 
   name_prefix             = var.environment
-  alb_arn_suffix          = module.compute.alb_arn
+  alb_arn_suffix          = module.compute.alb_arn_suffix
   alert_emails            = var.alert_emails
   aws_region              = var.region
   target_group_arn_suffix = module.compute.target_group_arn
