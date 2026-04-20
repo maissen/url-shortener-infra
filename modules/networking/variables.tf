@@ -23,12 +23,12 @@ variable "azs" {
   type        = list(string)
 }
 
-variable "nat_public_subnet_ids" {
-  description = "List of public subnet IDs where NAT GWs will be placed. Min 1 entry."
-  type        = list(string)
+variable "nat_subnet_indices" {
+  description = "Indices of public subnets where NAT GWs will be placed. Min 1 entry."
+  type        = list(number)
 
   validation {
-    condition     = length(var.nat_public_subnet_ids) >= 1
+    condition     = length(var.nat_subnet_indices) >= 1
     error_message = "At least one NAT Gateway is required."
   }
 }
