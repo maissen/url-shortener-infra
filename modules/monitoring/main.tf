@@ -155,50 +155,6 @@ resource "aws_cloudwatch_dashboard" "main" {
             ]
           ]
         }
-      },
-
-      # Widget 6 : DynamoDB Reads
-      {
-        type   = "metric"
-        x      = 12
-        y      = 12
-        width  = 12
-        height = 6
-
-        properties = {
-          title  = "DynamoDB Read Capacity"
-          region = var.aws_region
-
-          metrics = [
-            [
-              "AWS/DynamoDB",
-              "ConsumedReadCapacityUnits",
-              "TableName", var.dynamodb_table_name
-            ]
-          ]
-        }
-      },
-
-      # Widget 7 : DynamoDB Writes
-      {
-        type   = "metric"
-        x      = 0
-        y      = 18
-        width  = 24
-        height = 6
-
-        properties = {
-          title  = "DynamoDB Write Capacity"
-          region = var.aws_region
-
-          metrics = [
-            [
-              "AWS/DynamoDB",
-              "ConsumedWriteCapacityUnits",
-              "TableName", var.dynamodb_table_name
-            ]
-          ]
-        }
       }
     ]
   })
