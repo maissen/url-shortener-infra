@@ -165,7 +165,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_cpu_high" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 5
   datapoints_to_alarm = 5
-  threshold           = 80
+  threshold           = var.ecs_cpu_high_threshold
 
   namespace   = "AWS/ECS"
   metric_name = "CPUUtilization"
@@ -185,7 +185,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_memory_high" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 5
   datapoints_to_alarm = 5
-  threshold           = 80
+  threshold           = var.ecs_memory_high_threshold
 
   namespace   = "AWS/ECS"
   metric_name = "MemoryUtilization"
@@ -205,7 +205,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx_rate" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 5
   datapoints_to_alarm = 5
-  threshold           = 1
+  threshold           = var.alb_5xx_rate_threshold
 
   treat_missing_data = "notBreaching"
 
@@ -254,7 +254,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_hosts" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   datapoints_to_alarm = 2
-  threshold           = 0
+  threshold           = var.alb_unhealthy_hosts_threshold
 
   namespace   = "AWS/ApplicationELB"
   metric_name = "UnHealthyHostCount"

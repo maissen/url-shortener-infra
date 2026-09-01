@@ -59,3 +59,27 @@ variable "scale_out_cooldown" {
   type        = number
   default     = 60
 }
+
+variable "ecs_cpu_high_threshold" {
+  description = "CPU utilization percentage threshold to trigger high-CPU alarm"
+  type        = number
+  default     = 80
+}
+
+variable "ecs_memory_high_threshold" {
+  description = "Memory utilization percentage threshold to trigger high-memory alarm"
+  type        = number
+  default     = 80
+}
+
+variable "alb_5xx_rate_threshold" {
+  description = "5xx error rate percentage threshold to trigger alarm"
+  type        = number
+  default     = 1
+}
+
+variable "alb_unhealthy_hosts_threshold" {
+  description = "Unhealthy host count threshold to trigger alarm"
+  type        = number
+  default     = 0
+}
